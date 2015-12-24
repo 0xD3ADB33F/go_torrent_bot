@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/anacrolix/torrent"
+	"github.com/anacrolix/torrent/data/mmap"
+	"github.com/anacrolix/torrent/metainfo"
 	"github.com/zhulik/margelet"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"syscall"
@@ -31,7 +33,12 @@ func main() {
 		panic(err)
 	}
 
-	config := torrent.Config{DataDir: *downloadPath}
+	config := torrent.Config{
+		TorrentDataOpener: func(info *metainfo.Info) torrent.Data {
+			ret, _ := mmap.TorrentData(info, *downloadPath)
+			return ret
+		},
+	}
 
 	client, err := torrent.NewClient(&config)
 	if err != nil {
