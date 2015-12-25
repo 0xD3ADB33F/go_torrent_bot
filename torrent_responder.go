@@ -6,19 +6,20 @@ import (
 	"github.com/Syfaro/telegram-bot-api"
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
-	"github.com/dustin/go-humanize"
 	"github.com/zhulik/margelet"
 	"regexp"
 	"time"
 )
 
 var (
-	magnetRE, _ = regexp.Compile(`^magnet:\?xt=urn:.+$`)
+	magnetRE, _      = regexp.Compile(`^magnet:\?xt=urn:.+$`)
+	yesNoReplyMarkup = tgbotapi.ReplyKeyboardMarkup{
+		[][]string{[]string{"yes", "no"}},
+		true,
+		true,
+		true,
+	}
 )
-
-func infoAsString(info *metainfo.MetaInfo) string {
-	return fmt.Sprintf("Name: %s, Size: %s", info.Info.Name, humanize.Bytes(uint64(info.Info.TotalLength())))
-}
 
 type TorrentResponder struct {
 	client             *torrent.Client
@@ -100,12 +101,7 @@ func (session TorrentResponder) HandleResponse(bot margelet.MargeletAPI, message
 	case 0:
 		if session.torrentsRepository.Exists(message.Chat.ID, message.From.ID) {
 			msg := tgbotapi.NewMessage(message.Chat.ID, "Would you like to download it?")
-			msg.ReplyMarkup = tgbotapi.ReplyKeyboardMarkup{
-				[][]string{[]string{"yes", "no"}},
-				true,
-				true,
-				true,
-			}
+			msg.ReplyMarkup = yesNoReplyMarkup
 			bot.Send(msg)
 			return false, nil
 		}
@@ -129,15 +125,8 @@ func (session TorrentResponder) HandleResponse(bot margelet.MargeletAPI, message
 			return true, nil
 		default:
 			msg := tgbotapi.NewMessage(message.Chat.ID, "Sorry, i don't understand.")
-			msg.ReplyMarkup = tgbotapi.ReplyKeyboardMarkup{
-				[][]string{[]string{"yes", "no"}},
-				true,
-				true,
-				true,
-			}
+			msg.ReplyMarkup = yesNoReplyMarkup
 			bot.Send(msg)
-			return false, nil
-
 			return false, fmt.Errorf("unknown answer")
 		}
 	default:
@@ -161,7 +150,7 @@ func downloadTorrent(bot margelet.MargeletAPI, chatID int, data []byte, client *
 
 func run(t torrent.Torrent, chatID int, bot margelet.MargeletAPI) error {
 	t.DownloadAll()
-	bot.QuickSend(chatID, fmt.Sprintf("%s is Downloading...", t.Name()))
+	bot.QuickSend(chatID, fmt.Sprintf("%s is downloading...", t.Name()))
 
 	go func() {
 		for t.BytesCompleted() != t.Info().TotalLength() {
