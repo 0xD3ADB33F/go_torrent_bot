@@ -31,11 +31,9 @@ func (responder StatusHandler) Response(bot margelet.MargeletAPI, message tgbota
 
 	hash := strings.TrimSpace(message.CommandArguments())
 	if len(hash) > 0 {
-		torrents := responder.client.Torrents()
-		index := indexByHexHash(hash, torrents)
-		if index != -1 {
-			t := torrents[index]
-			bot.QuickSend(message.Chat.ID, verboseTorrentStats(responder.path, t))
+
+		if torrent := findTorrent(responder.client, hash); torrent != nil {
+			bot.QuickSend(message.Chat.ID, verboseTorrentStats(responder.path, *torrent))
 			return nil
 		}
 		bot.QuickSend(message.Chat.ID, fmt.Sprintf("Cannot find download with hash %s", hash))

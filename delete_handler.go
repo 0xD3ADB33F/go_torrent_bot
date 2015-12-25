@@ -33,26 +33,28 @@ func (handler DeleteHandler) HelpMessage() string {
 func (handler DeleteHandler) handleDeleteCommand(bot margelet.MargeletAPI, message tgbotapi.Message) (bool, error) {
 	hash := strings.TrimSpace(message.CommandArguments())
 	if len(hash) > 0 {
-		torrents := handler.client.Torrents()
-		index := indexByHexHash(hash, torrents)
-		if index != -1 {
-			t := torrents[index]
-			msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("You trying to download %s.\nWould you like to remove downloaded files?", infoAsString(t.MetaInfo())))
+		if torrent := findTorrent(handler.client, hash); torrent != nil {
+			msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("You trying to delete %s.\nWould you like to remove downloaded files?", infoAsString(torrent.MetaInfo())))
 			msg.ReplyMarkup = yesNoCancelReplyMarkup
 			bot.Send(msg)
 			return false, nil
 		}
 		bot.QuickSend(message.Chat.ID, fmt.Sprintf("Cannot find download with hash %s", hash))
 	}
+	bot.QuickSend(message.Chat.ID, fmt.Sprintf("usage: /delete <download hash>"))
 	return true, nil
 }
 
-func (handler DeleteHandler) handleAnswer(bot margelet.MargeletAPI, message tgbotapi.Message) (bool, error) {
+func (handler DeleteHandler) handleAnswer(bot margelet.MargeletAPI, prevMessage string, message tgbotapi.Message) (bool, error) {
+	if message.Text == "cancel" {
+		bot.QuickSend(message.Chat.ID, "Delete canceled!")
+		return true, nil
+	}
+
 	switch message.Text {
 	case "yes":
 	case "no":
-	case "cancel":
-		return true, nil
+		fmt.Print("TEST")
 	}
 
 	msg := tgbotapi.NewMessage(message.Chat.ID, "Sorry, i don't understand.")
@@ -71,7 +73,8 @@ func (handler DeleteHandler) HandleResponse(bot margelet.MargeletAPI, message tg
 	case 0:
 		return handler.handleDeleteCommand(bot, message)
 	case 1:
-		return handler.handleAnswer(bot, message)
+		fmt.Println(responses)
+		return handler.handleAnswer(bot, responses[0], message)
 	}
 
 	return true, nil

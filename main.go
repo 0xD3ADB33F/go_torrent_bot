@@ -56,7 +56,7 @@ func main() {
 	bot.AddMessageResponder(torrentResponder)
 	bot.AddSessionHandler("/download", torrentResponder)
 	bot.AddCommandHandler("/status", NewStatusHandler(*authorizedUsername, *downloadPath, client))
-	bot.AddSessionHandler("/delete", NewDeleteHandler(*authorizedUsername, client))
+	//	bot.AddSessionHandler("/delete", NewDeleteHandler(*authorizedUsername, client))
 
 	bot.Run()
 }

@@ -58,3 +58,12 @@ func torrentStats(torrent torrent.Torrent) string {
 func infoAsString(info *metainfo.MetaInfo) string {
 	return fmt.Sprintf("Name: %s, Size: %s", info.Info.Name, humanize.Bytes(uint64(info.Info.TotalLength())))
 }
+
+func findTorrent(client *torrent.Client, hash string) *torrent.Torrent {
+	torrents := client.Torrents()
+	index := indexByHexHash(hash, torrents)
+	if index != -1 {
+		return &torrents[index]
+	}
+	return nil
+}
