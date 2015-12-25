@@ -19,17 +19,23 @@ func infoAsString(info *metainfo.MetaInfo) string {
 type TorrentResponder struct {
 	client             *torrent.Client
 	torrentsRepository *TorrentsRepository
+	authorizedUsername string
 }
 
-func NewTorrentResponder(client *torrent.Client, repo *TorrentsRepository) (responder *TorrentResponder, err error) {
-	responder = &TorrentResponder{client, repo}
+func NewTorrentResponder(authorizedUsername string, client *torrent.Client, repo *TorrentsRepository) (responder *TorrentResponder, err error) {
+	responder = &TorrentResponder{client, repo, authorizedUsername}
 	runtime.SetFinalizer(responder, func(t *TorrentResponder) {
 		t.client.Close()
 	})
 	return
 }
 
-func (responder TorrentResponder) Response(bot margelet.MargeletAPI, message tgbotapi.Message) error {
+func (session TorrentResponder) Response(bot margelet.MargeletAPI, message tgbotapi.Message) error {
+	if message.From.UserName != session.authorizedUsername {
+		bot.QuickSend(message.Chat.ID, "Sorry, you are not allowed to control me!")
+		return nil
+	}
+
 	document := message.Document
 
 	if len(document.FileID) > 0 && document.MimeType == "application/x-bittorrent" {
@@ -50,11 +56,11 @@ func (responder TorrentResponder) Response(bot margelet.MargeletAPI, message tgb
 			return err
 		}
 
-		responder.torrentsRepository.Add(message.Chat.ID, message.From.ID, data)
+		session.torrentsRepository.Add(message.Chat.ID, message.From.ID, data)
 
 		bot.QuickSend(message.Chat.ID, infoAsString(info))
 		bot.GetSessionRepository().Create(message.Chat.ID, message.From.ID, "/download")
-		bot.HandleSession(message, responder)
+		bot.HandleSession(message, session)
 
 		return nil
 	}
@@ -62,6 +68,10 @@ func (responder TorrentResponder) Response(bot margelet.MargeletAPI, message tgb
 }
 
 func (session TorrentResponder) HandleResponse(bot margelet.MargeletAPI, message tgbotapi.Message, responses []string) (bool, error) {
+	if message.From.UserName != session.authorizedUsername {
+		bot.QuickSend(message.Chat.ID, "Sorry, you are not allowed to control me!")
+		return true, nil
+	}
 	switch len(responses) {
 	case 0:
 		if session.torrentsRepository.Exists(message.Chat.ID, message.From.ID) {

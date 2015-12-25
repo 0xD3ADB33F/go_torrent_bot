@@ -20,12 +20,13 @@ func torrentStats(torrent torrent.Torrent) string {
 }
 
 type StatusResponder struct {
-	path   string
-	client *torrent.Client
+	path               string
+	client             *torrent.Client
+	authorizedUsername string
 }
 
-func NewStatusResponder(path string, client *torrent.Client) *StatusResponder {
-	return &StatusResponder{path, client}
+func NewStatusResponder(authorizedUsername string, path string, client *torrent.Client) *StatusResponder {
+	return &StatusResponder{path, client, authorizedUsername}
 }
 
 func indexByHexHash(hash string, torrents []torrent.Torrent) int {
@@ -38,6 +39,11 @@ func indexByHexHash(hash string, torrents []torrent.Torrent) int {
 }
 
 func (responder StatusResponder) Response(bot margelet.MargeletAPI, message tgbotapi.Message) error {
+	if message.From.UserName != responder.authorizedUsername {
+		bot.QuickSend(message.Chat.ID, "Sorry, you are not allowed to control me!")
+		return nil
+	}
+
 	if len(responder.client.Torrents()) == 0 {
 		bot.QuickSend(message.Chat.ID, "There is no downloads")
 		return nil

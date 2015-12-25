@@ -23,6 +23,7 @@ func main() {
 	redisPassword := kingpin.Flag("redis_password", "Redis password").Default("").Short('p').String()
 	redisDB := kingpin.Flag("redis_db", "Redis password").Default("0").Short('d').Int64()
 	downloadPath := kingpin.Flag("path", "Download path").Required().Short('o').String()
+	authorizedUsername := kingpin.Flag("username", "Username of user, thich can control bot").Required().Short('u').String()
 	kingpin.Parse()
 
 	checkDownloadPath(*downloadPath)
@@ -47,13 +48,13 @@ func main() {
 
 	repo := newTorrentsRepository("torrent_bot_torrents", bot.GetRedis())
 
-	torrentResponder, err := NewTorrentResponder(client, repo)
+	torrentResponder, err := NewTorrentResponder(*authorizedUsername, client, repo)
 	if err != nil {
 		panic(err)
 	}
 	bot.AddMessageResponder(torrentResponder)
 	bot.AddSessionHandler("/download", torrentResponder)
-	bot.AddCommandHandler("/status", NewStatusResponder(*downloadPath, client))
+	bot.AddCommandHandler("/status", NewStatusResponder(*authorizedUsername, *downloadPath, client))
 
 	bot.Run()
 }
