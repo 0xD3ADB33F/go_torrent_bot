@@ -45,6 +45,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer client.Close()
 
 	repo := newTorrentsRepository("torrent_bot_torrents", bot.GetRedis())
 

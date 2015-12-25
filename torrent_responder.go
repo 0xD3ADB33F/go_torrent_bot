@@ -8,8 +8,12 @@ import (
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/dustin/go-humanize"
 	"github.com/zhulik/margelet"
-	"runtime"
+	"regexp"
 	"time"
+)
+
+var (
+	magnetRE, _ = regexp.Compile(`^magnet:\?xt=urn:.+$`)
 )
 
 func infoAsString(info *metainfo.MetaInfo) string {
@@ -24,10 +28,51 @@ type TorrentResponder struct {
 
 func NewTorrentResponder(authorizedUsername string, client *torrent.Client, repo *TorrentsRepository) (responder *TorrentResponder, err error) {
 	responder = &TorrentResponder{client, repo, authorizedUsername}
-	runtime.SetFinalizer(responder, func(t *TorrentResponder) {
-		t.client.Close()
-	})
 	return
+}
+
+func (session TorrentResponder) handleTorrentFile(bot margelet.MargeletAPI, message tgbotapi.Message) error {
+	bot.Send(tgbotapi.NewChatAction(message.Chat.ID, tgbotapi.ChatTyping))
+
+	url, err := bot.GetFileDirectURL(message.Document.FileID)
+	if err != nil {
+		return err
+	}
+
+	data, err := download(url)
+	if err != nil {
+		return err
+	}
+
+	info, err := metainfo.Load(bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+
+	bot.QuickSend(message.Chat.ID, infoAsString(info))
+	session.torrentsRepository.Add(message.Chat.ID, message.From.ID, data)
+	bot.GetSessionRepository().Create(message.Chat.ID, message.From.ID, "/download")
+	bot.HandleSession(message, session)
+	return nil
+}
+
+func (session TorrentResponder) handleMagnetLink(bot margelet.MargeletAPI, message tgbotapi.Message) error {
+	bot.Send(tgbotapi.NewChatAction(message.Chat.ID, tgbotapi.ChatTyping))
+
+	t, err := session.client.AddMagnet(message.Text)
+
+	if err != nil {
+		return err
+	}
+
+	<-t.GotInfo()
+	bot.QuickSend(message.Chat.ID, infoAsString(t.MetaInfo()))
+	session.torrentsRepository.Add(message.Chat.ID, message.From.ID, []byte(message.Text))
+	bot.GetSessionRepository().Create(message.Chat.ID, message.From.ID, "/download")
+	bot.HandleSession(message, session)
+	t.Drop()
+
+	return nil
 }
 
 func (session TorrentResponder) Response(bot margelet.MargeletAPI, message tgbotapi.Message) error {
@@ -36,33 +81,12 @@ func (session TorrentResponder) Response(bot margelet.MargeletAPI, message tgbot
 		return nil
 	}
 
-	document := message.Document
-
-	if len(document.FileID) > 0 && document.MimeType == "application/x-bittorrent" {
-		bot.Send(tgbotapi.NewChatAction(message.Chat.ID, tgbotapi.ChatTyping))
-
-		url, err := bot.GetFileDirectURL(document.FileID)
-		if err != nil {
-			return err
+	if len(message.Document.FileID) > 0 && message.Document.MimeType == "application/x-bittorrent" {
+		return session.handleTorrentFile(bot, message)
+	} else {
+		if magnetRE.MatchString(message.Text) {
+			return session.handleMagnetLink(bot, message)
 		}
-
-		data, err := download(url)
-		if err != nil {
-			return err
-		}
-
-		info, err := metainfo.Load(bytes.NewReader(data))
-		if err != nil {
-			return err
-		}
-
-		session.torrentsRepository.Add(message.Chat.ID, message.From.ID, data)
-
-		bot.QuickSend(message.Chat.ID, infoAsString(info))
-		bot.GetSessionRepository().Create(message.Chat.ID, message.From.ID, "/download")
-		bot.HandleSession(message, session)
-
-		return nil
 	}
 	return nil
 }
@@ -97,14 +121,23 @@ func (session TorrentResponder) HandleResponse(bot margelet.MargeletAPI, message
 				return true, nil
 			}
 			session.torrentsRepository.Delete(message.Chat.ID, message.From.ID)
-			downloadTorrent(bot, message.Chat.ID, data, session.client)
-			return true, nil
+
+			return true, downloadTorrent(bot, message.Chat.ID, data, session.client)
 		case "no":
 			bot.QuickSend(message.Chat.ID, "Ok, i will forgive it")
 			session.torrentsRepository.Delete(message.Chat.ID, message.From.ID)
 			return true, nil
 		default:
-			bot.QuickSend(message.Chat.ID, "Sorry, i don't understand, yes or no?")
+			msg := tgbotapi.NewMessage(message.Chat.ID, "Sorry, i don't understand.")
+			msg.ReplyMarkup = tgbotapi.ReplyKeyboardMarkup{
+				[][]string{[]string{"yes", "no"}},
+				true,
+				true,
+				true,
+			}
+			bot.Send(msg)
+			return false, nil
+
 			return false, fmt.Errorf("unknown answer")
 		}
 	default:
@@ -117,15 +150,16 @@ func (session TorrentResponder) HelpMessage() string {
 }
 
 func downloadTorrent(bot margelet.MargeletAPI, chatID int, data []byte, client *torrent.Client) error {
-	info, err := metainfo.Load(bytes.NewReader(data))
-	if err != nil {
-		return err
-	}
-	t, err := client.AddTorrent(info)
-	if err != nil {
-		return err
-	}
+	str := string(data)
 
+	if magnetRE.MatchString(str) {
+		return downloadMagnet(bot, chatID, str, client)
+	} else {
+		return downloadTorrentFile(bot, chatID, data, client)
+	}
+}
+
+func run(t torrent.Torrent, chatID int, bot margelet.MargeletAPI) error {
 	t.DownloadAll()
 	bot.QuickSend(chatID, fmt.Sprintf("%s is Downloading...", t.Name()))
 
@@ -137,4 +171,26 @@ func downloadTorrent(bot margelet.MargeletAPI, chatID int, data []byte, client *
 	}()
 
 	return nil
+}
+
+func downloadTorrentFile(bot margelet.MargeletAPI, chatID int, data []byte, client *torrent.Client) error {
+	info, err := metainfo.Load(bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	t, err := client.AddTorrent(info)
+	if err != nil {
+		return err
+	}
+
+	return run(t, chatID, bot)
+}
+
+func downloadMagnet(bot margelet.MargeletAPI, chatID int, url string, client *torrent.Client) error {
+	t, err := client.AddMagnet(url)
+	if err != nil {
+		return err
+	}
+
+	return run(t, chatID, bot)
 }
