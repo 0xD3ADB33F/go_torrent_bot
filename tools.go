@@ -37,7 +37,7 @@ func indexByHexHash(hash string, torrents []torrent.Torrent) int {
 }
 
 func verboseTorrentStats(downloadPath string, t torrent.Torrent) string {
-	return fmt.Sprintf("Hash: %s\nName: %s\nSize: %s\nProgress: %.2f%%\nSeeding: %t\nPeers: %d\nLocation: %s",
+	return fmt.Sprintf("%s\nName: %s\nSize: %s\nProgress: %.2f%%\nSeeding: %t\nPeers: %d\nLocation: %s",
 		t.InfoHash().HexString(),
 		t.Info().Name,
 		humanize.Bytes(uint64(t.Info().TotalLength())),
@@ -49,7 +49,7 @@ func verboseTorrentStats(downloadPath string, t torrent.Torrent) string {
 }
 
 func torrentStats(torrent torrent.Torrent) string {
-	return fmt.Sprintf("Hash: %s, Name: %s, Size: %s, Progress: %.2f%%",
+	return fmt.Sprintf("%s\nName: %s, Size: %s, Progress: %.2f%%",
 		torrent.InfoHash().HexString(),
 		torrent.Info().Name,
 		humanize.Bytes(uint64(torrent.Info().TotalLength())),
