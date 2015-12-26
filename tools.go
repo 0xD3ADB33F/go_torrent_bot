@@ -70,8 +70,19 @@ func findTorrent(client *torrent.Client, hash string) *torrent.Torrent {
 	return nil
 }
 
+func findHash(message tgbotapi.Message) string {
+	if message.IsCommand() {
+		return strings.TrimSpace(message.CommandArguments())
+	}
+	lines := strings.SplitN(message.Text, "\n", 2)
+	if len(lines) == 2 {
+		return strings.TrimSpace(lines[0])
+	}
+	return ""
+}
+
 func findTorrentByMessage(client *torrent.Client, message tgbotapi.Message) (*torrent.Torrent, error) {
-	hash := strings.TrimSpace(message.CommandArguments())
+	hash := findHash(message)
 	if len(hash) > 0 {
 		if torrent := findTorrent(client, hash); torrent != nil {
 			return torrent, nil

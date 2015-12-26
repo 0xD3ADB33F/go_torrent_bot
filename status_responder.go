@@ -28,6 +28,10 @@ func (responder statusHandler) Response(bot margelet.MargeletAPI, message tgbota
 		return nil
 	}
 
+	if message.ReplyToMessage != nil {
+		message = *message.ReplyToMessage
+	}
+
 	torrent, err := findTorrentByMessage(responder.client, message)
 
 	if err != nil {

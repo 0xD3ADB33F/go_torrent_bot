@@ -60,7 +60,7 @@ func main() {
 	bot.AddCommandHandler("/status", newStatusHandler(*authorizedUsername, *downloadPath, client))
 	bot.AddSessionHandler("/delete", newDeleteHandler(*authorizedUsername, *downloadPath, client))
 
-	if newrelicLicence != nil {
+	if len(*newrelicLicence) > 0 {
 		agent := gorelic.NewAgent()
 		agent.NewrelicName = "go_torrent_bot"
 		agent.Verbose = false
