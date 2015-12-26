@@ -68,10 +68,14 @@ func (handler deleteHandler) handleAnswer(bot margelet.MargeletAPI, prevMessage 
 				bot.QuickSend(message.Chat.ID, fmt.Sprintf("Sorry, something went wrong when i trying to delete %s files!", infoAsString(torrent.MetaInfo())))
 			}
 		}()
-		bot.QuickSend(message.Chat.ID, fmt.Sprintf("Downloading of %s canceled, files removed!", infoAsString(torrent.MetaInfo())))
+		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Downloading of %s canceled, files removed!", infoAsString(torrent.MetaInfo())))
+		msg.ReplyMarkup = hideReplyMarkup
+		bot.Send(msg)
 		return true, nil
 	case "no":
-		bot.QuickSend(message.Chat.ID, fmt.Sprintf("Downloading of %s canceled!", infoAsString(torrent.MetaInfo())))
+		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Downloading of %s is canceled!", infoAsString(torrent.MetaInfo())))
+		msg.ReplyMarkup = hideReplyMarkup
+		bot.Send(msg)
 		torrent.Drop()
 		return true, nil
 	}

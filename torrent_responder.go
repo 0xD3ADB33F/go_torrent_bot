@@ -19,6 +19,10 @@ var (
 		true,
 		true,
 	}
+	hideReplyMarkup = tgbotapi.ReplyKeyboardHide{
+		true,
+		true,
+	}
 )
 
 type torrentResponder struct {
@@ -121,7 +125,9 @@ func (session torrentResponder) HandleResponse(bot margelet.MargeletAPI, message
 
 			return true, downloadTorrent(bot, message.Chat.ID, data, session.client)
 		case "no":
-			bot.QuickSend(message.Chat.ID, "Ok, i will forgive it")
+			msg := tgbotapi.NewMessage(message.Chat.ID, "Ok, i will forgive it")
+			msg.ReplyMarkup = hideReplyMarkup
+			bot.Send(msg)
 			session.torrentsRepository.Delete(message.Chat.ID, message.From.ID)
 			return true, nil
 		default:
@@ -157,7 +163,9 @@ func run(t torrent.Torrent, chatID int, bot margelet.MargeletAPI) error {
 		for t.BytesCompleted() != t.Info().TotalLength() {
 			time.Sleep(time.Second)
 		}
-		bot.QuickSend(chatID, fmt.Sprintf("Downloading of %s is finished!", t.Name()))
+		msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("Downloading of %s is finished!", t.Name()))
+		msg.ReplyMarkup = hideReplyMarkup
+		bot.Send(msg)
 	}()
 
 	return nil
