@@ -5,6 +5,7 @@ import (
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/data/mmap"
 	"github.com/anacrolix/torrent/metainfo"
+	"github.com/yvasiyarov/gorelic"
 	"github.com/zhulik/margelet"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"syscall"
@@ -24,6 +25,7 @@ func main() {
 	redisDB := kingpin.Flag("redis_db", "Redis password").Default("0").Short('d').Int64()
 	downloadPath := kingpin.Flag("path", "Download path").Required().Short('o').String()
 	authorizedUsername := kingpin.Flag("username", "Username of user, thich can control bot").Required().Short('u').String()
+	newrelicLicence := kingpin.Flag("newrelic", "Newrelic licence for monitoring").Short('n').String()
 	kingpin.Parse()
 
 	checkDownloadPath(*downloadPath)
@@ -57,6 +59,17 @@ func main() {
 	bot.AddSessionHandler("/download", torrentResponder)
 	bot.AddCommandHandler("/status", newStatusHandler(*authorizedUsername, *downloadPath, client))
 	bot.AddSessionHandler("/delete", newDeleteHandler(*authorizedUsername, *downloadPath, client))
+
+	if newrelicLicence != nil {
+		agent := gorelic.NewAgent()
+		agent.NewrelicName = "go_torrent_bot"
+		agent.Verbose = false
+		agent.NewrelicLicense = *newrelicLicence
+		err := agent.Run()
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	bot.Run()
 }
