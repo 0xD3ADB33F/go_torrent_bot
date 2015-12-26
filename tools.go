@@ -61,7 +61,7 @@ func infoAsString(info *metainfo.MetaInfo) string {
 	return fmt.Sprintf("Name: %s, Size: %s", info.Info.Name, humanize.Bytes(uint64(info.Info.TotalLength())))
 }
 
-func findTorrent(client *torrent.Client, hash string) *torrent.Torrent {
+func findTorrent(client torrentClient, hash string) *torrent.Torrent {
 	torrents := client.Torrents()
 	index := indexByHexHash(hash, torrents)
 	if index != -1 {
@@ -81,7 +81,7 @@ func findHash(message tgbotapi.Message) string {
 	return ""
 }
 
-func findTorrentByMessage(client *torrent.Client, message tgbotapi.Message) (*torrent.Torrent, error) {
+func findTorrentByMessage(client torrentClient, message tgbotapi.Message) (*torrent.Torrent, error) {
 	hash := findHash(message)
 	if len(hash) > 0 {
 		if torrent := findTorrent(client, hash); torrent != nil {

@@ -3,17 +3,16 @@ package main
 import (
 	"fmt"
 	"github.com/Syfaro/telegram-bot-api"
-	"github.com/anacrolix/torrent"
 	"github.com/zhulik/margelet"
 )
 
 type statusHandler struct {
 	path               string
-	client             *torrent.Client
+	client             torrentClient
 	authorizedUsername string
 }
 
-func newStatusHandler(authorizedUsername string, path string, client *torrent.Client) *statusHandler {
+func newStatusHandler(authorizedUsername string, path string, client torrentClient) *statusHandler {
 	return &statusHandler{path, client, authorizedUsername}
 }
 

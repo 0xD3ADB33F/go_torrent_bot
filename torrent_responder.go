@@ -26,12 +26,12 @@ var (
 )
 
 type torrentResponder struct {
-	client             *torrent.Client
+	client             torrentClient
 	torrentsRepository *torrentsRepository
 	authorizedUsername string
 }
 
-func newTorrentResponder(authorizedUsername string, client *torrent.Client, repo *torrentsRepository) (responder *torrentResponder, err error) {
+func newTorrentResponder(authorizedUsername string, client torrentClient, repo *torrentsRepository) (responder *torrentResponder, err error) {
 	responder = &torrentResponder{client, repo, authorizedUsername}
 	return
 }
@@ -145,7 +145,7 @@ func (session torrentResponder) HelpMessage() string {
 	return "Download torrent, please do not use it directly"
 }
 
-func downloadTorrent(bot margelet.MargeletAPI, chatID int, data []byte, client *torrent.Client) error {
+func downloadTorrent(bot margelet.MargeletAPI, chatID int, data []byte, client torrentClient) error {
 	str := string(data)
 
 	if magnetRE.MatchString(str) {
@@ -173,7 +173,7 @@ func run(t torrent.Torrent, chatID int, bot margelet.MargeletAPI) error {
 	return nil
 }
 
-func downloadTorrentFile(bot margelet.MargeletAPI, chatID int, data []byte, client *torrent.Client) error {
+func downloadTorrentFile(bot margelet.MargeletAPI, chatID int, data []byte, client torrentClient) error {
 	info, err := metainfo.Load(bytes.NewReader(data))
 	if err != nil {
 		return err
@@ -186,7 +186,7 @@ func downloadTorrentFile(bot margelet.MargeletAPI, chatID int, data []byte, clie
 	return run(t, chatID, bot)
 }
 
-func downloadMagnet(bot margelet.MargeletAPI, chatID int, url string, client *torrent.Client) error {
+func downloadMagnet(bot margelet.MargeletAPI, chatID int, url string, client torrentClient) error {
 	t, err := client.AddMagnet(url)
 	if err != nil {
 		return err

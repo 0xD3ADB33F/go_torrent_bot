@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/Syfaro/telegram-bot-api"
-	"github.com/anacrolix/torrent"
 	"github.com/zhulik/margelet"
 	"os"
 	"path"
@@ -19,12 +18,12 @@ var (
 )
 
 type deleteHandler struct {
-	client             *torrent.Client
+	client             torrentClient
 	authorizedUsername string
 	downloadPath       string
 }
 
-func newDeleteHandler(authorizedUsername, downloadPath string, client *torrent.Client) *deleteHandler {
+func newDeleteHandler(authorizedUsername, downloadPath string, client torrentClient) *deleteHandler {
 	return &deleteHandler{client, authorizedUsername, downloadPath}
 }
 
