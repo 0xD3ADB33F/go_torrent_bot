@@ -21,18 +21,18 @@ var (
 	}
 )
 
-type TorrentResponder struct {
+type torrentResponder struct {
 	client             *torrent.Client
-	torrentsRepository *TorrentsRepository
+	torrentsRepository *torrentsRepository
 	authorizedUsername string
 }
 
-func NewTorrentResponder(authorizedUsername string, client *torrent.Client, repo *TorrentsRepository) (responder *TorrentResponder, err error) {
-	responder = &TorrentResponder{client, repo, authorizedUsername}
+func newTorrentResponder(authorizedUsername string, client *torrent.Client, repo *torrentsRepository) (responder *torrentResponder, err error) {
+	responder = &torrentResponder{client, repo, authorizedUsername}
 	return
 }
 
-func (session TorrentResponder) handleTorrentFile(bot margelet.MargeletAPI, message tgbotapi.Message) error {
+func (session torrentResponder) handleTorrentFile(bot margelet.MargeletAPI, message tgbotapi.Message) error {
 	bot.Send(tgbotapi.NewChatAction(message.Chat.ID, tgbotapi.ChatTyping))
 
 	url, err := bot.GetFileDirectURL(message.Document.FileID)
@@ -57,7 +57,7 @@ func (session TorrentResponder) handleTorrentFile(bot margelet.MargeletAPI, mess
 	return nil
 }
 
-func (session TorrentResponder) handleMagnetLink(bot margelet.MargeletAPI, message tgbotapi.Message) error {
+func (session torrentResponder) handleMagnetLink(bot margelet.MargeletAPI, message tgbotapi.Message) error {
 	bot.Send(tgbotapi.NewChatAction(message.Chat.ID, tgbotapi.ChatTyping))
 
 	t, err := session.client.AddMagnet(message.Text)
@@ -76,7 +76,7 @@ func (session TorrentResponder) handleMagnetLink(bot margelet.MargeletAPI, messa
 	return nil
 }
 
-func (session TorrentResponder) Response(bot margelet.MargeletAPI, message tgbotapi.Message) error {
+func (session torrentResponder) Response(bot margelet.MargeletAPI, message tgbotapi.Message) error {
 	if message.From.UserName != session.authorizedUsername {
 		bot.QuickSend(message.Chat.ID, "Sorry, you are not allowed to control me!")
 		return nil
@@ -84,15 +84,16 @@ func (session TorrentResponder) Response(bot margelet.MargeletAPI, message tgbot
 
 	if len(message.Document.FileID) > 0 && message.Document.MimeType == "application/x-bittorrent" {
 		return session.handleTorrentFile(bot, message)
-	} else {
-		if magnetRE.MatchString(message.Text) {
-			return session.handleMagnetLink(bot, message)
-		}
 	}
+
+	if magnetRE.MatchString(message.Text) {
+		return session.handleMagnetLink(bot, message)
+	}
+
 	return nil
 }
 
-func (session TorrentResponder) HandleResponse(bot margelet.MargeletAPI, message tgbotapi.Message, responses []tgbotapi.Message) (bool, error) {
+func (session torrentResponder) HandleResponse(bot margelet.MargeletAPI, message tgbotapi.Message, responses []tgbotapi.Message) (bool, error) {
 	if message.From.UserName != session.authorizedUsername {
 		bot.QuickSend(message.Chat.ID, "Sorry, you are not allowed to control me!")
 		return true, nil
@@ -134,7 +135,7 @@ func (session TorrentResponder) HandleResponse(bot margelet.MargeletAPI, message
 	}
 }
 
-func (session TorrentResponder) HelpMessage() string {
+func (session torrentResponder) HelpMessage() string {
 	return "Download torrent, please do not use it directly"
 }
 
@@ -143,9 +144,9 @@ func downloadTorrent(bot margelet.MargeletAPI, chatID int, data []byte, client *
 
 	if magnetRE.MatchString(str) {
 		return downloadMagnet(bot, chatID, str, client)
-	} else {
-		return downloadTorrentFile(bot, chatID, data, client)
 	}
+
+	return downloadTorrentFile(bot, chatID, data, client)
 }
 
 func run(t torrent.Torrent, chatID int, bot margelet.MargeletAPI) error {

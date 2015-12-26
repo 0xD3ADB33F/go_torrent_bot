@@ -18,21 +18,21 @@ var (
 	}
 )
 
-type DeleteHandler struct {
+type deleteHandler struct {
 	client             *torrent.Client
 	authorizedUsername string
 	downloadPath       string
 }
 
-func NewDeleteHandler(authorizedUsername, downloadPath string, client *torrent.Client) *DeleteHandler {
-	return &DeleteHandler{client, authorizedUsername, downloadPath}
+func newDeleteHandler(authorizedUsername, downloadPath string, client *torrent.Client) *deleteHandler {
+	return &deleteHandler{client, authorizedUsername, downloadPath}
 }
 
-func (handler DeleteHandler) HelpMessage() string {
+func (handler deleteHandler) HelpMessage() string {
 	return "Deletes torrent without files ot with it"
 }
 
-func (handler DeleteHandler) handleDeleteCommand(bot margelet.MargeletAPI, message tgbotapi.Message) (bool, error) {
+func (handler deleteHandler) handleDeleteCommand(bot margelet.MargeletAPI, message tgbotapi.Message) (bool, error) {
 	torrent, err := findTorrentByMessage(handler.client, message)
 
 	if err != nil {
@@ -51,7 +51,7 @@ func (handler DeleteHandler) handleDeleteCommand(bot margelet.MargeletAPI, messa
 
 }
 
-func (handler DeleteHandler) handleAnswer(bot margelet.MargeletAPI, prevMessage tgbotapi.Message, message tgbotapi.Message) (bool, error) {
+func (handler deleteHandler) handleAnswer(bot margelet.MargeletAPI, prevMessage tgbotapi.Message, message tgbotapi.Message) (bool, error) {
 	if message.Text == "cancel" {
 		bot.QuickSend(message.Chat.ID, "Delete canceled!")
 		return true, nil
@@ -82,7 +82,7 @@ func (handler DeleteHandler) handleAnswer(bot margelet.MargeletAPI, prevMessage 
 	return false, fmt.Errorf("unknown answer")
 }
 
-func (handler DeleteHandler) HandleResponse(bot margelet.MargeletAPI, message tgbotapi.Message, responses []tgbotapi.Message) (bool, error) {
+func (handler deleteHandler) HandleResponse(bot margelet.MargeletAPI, message tgbotapi.Message, responses []tgbotapi.Message) (bool, error) {
 	if message.From.UserName != handler.authorizedUsername {
 		bot.QuickSend(message.Chat.ID, "Sorry, you are not allowed to control me!")
 		return true, nil

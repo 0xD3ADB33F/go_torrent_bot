@@ -49,14 +49,14 @@ func main() {
 
 	repo := newTorrentsRepository("torrent_bot_torrents", bot.GetRedis())
 
-	torrentResponder, err := NewTorrentResponder(*authorizedUsername, client, repo)
+	torrentResponder, err := newTorrentResponder(*authorizedUsername, client, repo)
 	if err != nil {
 		panic(err)
 	}
 	bot.AddMessageResponder(torrentResponder)
 	bot.AddSessionHandler("/download", torrentResponder)
-	bot.AddCommandHandler("/status", NewStatusHandler(*authorizedUsername, *downloadPath, client))
-	bot.AddSessionHandler("/delete", NewDeleteHandler(*authorizedUsername, *downloadPath, client))
+	bot.AddCommandHandler("/status", newStatusHandler(*authorizedUsername, *downloadPath, client))
+	bot.AddSessionHandler("/delete", newDeleteHandler(*authorizedUsername, *downloadPath, client))
 
 	bot.Run()
 }

@@ -5,32 +5,32 @@ import (
 	"gopkg.in/redis.v3"
 )
 
-type TorrentsRepository struct {
+type torrentsRepository struct {
 	prefix string
 	client *redis.Client
 }
 
-func newTorrentsRepository(prefix string, client *redis.Client) *TorrentsRepository {
-	return &TorrentsRepository{prefix, client}
+func newTorrentsRepository(prefix string, client *redis.Client) *torrentsRepository {
+	return &torrentsRepository{prefix, client}
 }
 
-func (repo *TorrentsRepository) Add(chatID, userID int, content []byte) {
+func (repo *torrentsRepository) Add(chatID, userID int, content []byte) {
 	repo.client.Set(repo.key(chatID, userID), content, 0)
 }
 
-func (repo *TorrentsRepository) Exists(chatID, userID int) (result bool) {
+func (repo *torrentsRepository) Exists(chatID, userID int) (result bool) {
 	result, _ = repo.client.Exists(repo.key(chatID, userID)).Result()
 	return
 }
 
-func (repo *TorrentsRepository) Get(chatID, userID int) ([]byte, error) {
+func (repo *torrentsRepository) Get(chatID, userID int) ([]byte, error) {
 	return repo.client.Get(repo.key(chatID, userID)).Bytes()
 }
 
-func (repo *TorrentsRepository) Delete(chatID, userID int) {
+func (repo *torrentsRepository) Delete(chatID, userID int) {
 	repo.client.Del(repo.key(chatID, userID))
 }
 
-func (repo *TorrentsRepository) key(chatID, userID int) string {
+func (repo *torrentsRepository) key(chatID, userID int) string {
 	return fmt.Sprintf("%s_%d_%d", repo.prefix, chatID, userID)
 }

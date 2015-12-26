@@ -7,17 +7,17 @@ import (
 	"github.com/zhulik/margelet"
 )
 
-type StatusHandler struct {
+type statusHandler struct {
 	path               string
 	client             *torrent.Client
 	authorizedUsername string
 }
 
-func NewStatusHandler(authorizedUsername string, path string, client *torrent.Client) *StatusHandler {
-	return &StatusHandler{path, client, authorizedUsername}
+func newStatusHandler(authorizedUsername string, path string, client *torrent.Client) *statusHandler {
+	return &statusHandler{path, client, authorizedUsername}
 }
 
-func (responder StatusHandler) Response(bot margelet.MargeletAPI, message tgbotapi.Message) error {
+func (responder statusHandler) Response(bot margelet.MargeletAPI, message tgbotapi.Message) error {
 	if message.From.UserName != responder.authorizedUsername {
 		bot.QuickSend(message.Chat.ID, "Sorry, you are not allowed to control me!")
 		return nil
@@ -40,12 +40,12 @@ func (responder StatusHandler) Response(bot margelet.MargeletAPI, message tgbota
 	if torrent != nil {
 		bot.QuickSend(message.Chat.ID, verboseTorrentStats(responder.path, *torrent))
 		return nil
-	} else {
-		bot.QuickSend(message.Chat.ID, fmt.Sprintf("Cannot find download with hash %s", message.CommandArguments()))
-		return nil
 	}
+
+	bot.QuickSend(message.Chat.ID, fmt.Sprintf("Cannot find download with hash %s", message.CommandArguments()))
+	return nil
 }
 
-func (responder StatusHandler) HelpMessage() string {
+func (responder statusHandler) HelpMessage() string {
 	return "Shows status of your downloads"
 }
