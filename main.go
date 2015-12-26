@@ -57,7 +57,7 @@ func main() {
 	}
 	bot.AddMessageResponder(torrentResponder)
 	bot.AddSessionHandler("/download", torrentResponder)
-	bot.AddCommandHandler("/status", newStatusHandler(*authorizedUsername, *downloadPath, client))
+	bot.AddCommandHandler("/status", newStatusHandler(*authorizedUsername, *downloadPath, client, findTorrentByMessage))
 	bot.AddSessionHandler("/delete", newDeleteHandler(*authorizedUsername, *downloadPath, client))
 
 	if len(*newrelicLicence) > 0 {

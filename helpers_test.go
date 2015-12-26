@@ -12,8 +12,8 @@ type TorrentClientMock struct {
 	torrents []torrent.Torrent
 }
 
-func newTorrentClientMock() TorrentClientMock {
-	return TorrentClientMock{}
+func newTorrentClientMock() *TorrentClientMock {
+	return &TorrentClientMock{}
 }
 
 func (mock TorrentClientMock) AddMagnet(string) (torrent.Torrent, error) {
@@ -24,7 +24,7 @@ func (mock TorrentClientMock) AddTorrent(info *metainfo.MetaInfo) (torrent.Torre
 	return mock.torrents[0], nil
 }
 
-func (mock TorrentClientMock) Torrents() []torrent.Torrent {
+func (mock *TorrentClientMock) Torrents() []torrent.Torrent {
 	return mock.torrents
 }
 

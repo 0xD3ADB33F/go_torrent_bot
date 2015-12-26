@@ -2,16 +2,16 @@ package main
 
 import (
 	"github.com/Syfaro/telegram-bot-api"
+	"github.com/anacrolix/torrent"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"github.com/anacrolix/torrent"
 )
 
 func TestStatusHandler(t *testing.T) {
 	Convey("When status responder", t, func() {
 		bot := newMargeletMock()
 		client := newTorrentClientMock()
-		handler := newStatusHandler("test", "~/", client)
+		handler := newStatusHandler("test", "~/", client, findTorrentByMessage)
 
 		Convey("when calling HelpMessage", func() {
 			message := handler.HelpMessage()
@@ -35,12 +35,13 @@ func TestStatusHandler(t *testing.T) {
 				})
 			})
 
-			Convey("with authorized user", func(){
+			Convey("with authorized user", func() {
 				from := tgbotapi.User{UserName: "test"}
 				msg := tgbotapi.Message{From: from}
-				handler.Response(bot, msg)
 
-				Convey("without downloads", func(){
+				Convey("without downloads", func() {
+					handler.Response(bot, msg)
+
 					Convey("Sent message should countains information about empty download list", func() {
 						So(bot.messages[0].(tgbotapi.MessageConfig).Text, ShouldEqual, "There is no downloads")
 					})
@@ -51,8 +52,19 @@ func TestStatusHandler(t *testing.T) {
 				})
 
 				Convey("with existing downloads", func() {
-					t := torrent.Torrent{}
-					client.torrents = append(client.torrents, t)
+					torr := torrent.Torrent{}
+					client.torrents = append(client.torrents, torr)
+					handler.finder = func(client torrentClient, message tgbotapi.Message) (*torrent.Torrent, error) {
+						return &torr, nil
+					}
+
+//					Convey("with reply", func() {
+//						msg.ReplyToMessage = &tgbotapi.Message{}
+//						handler.Response(bot, msg)
+//						Convey("sent info about download", func() {
+//							So(bot.messages[0].(tgbotapi.MessageConfig).Text, ShouldEqual, "")
+//						})
+//					})
 				})
 			})
 		})

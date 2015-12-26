@@ -10,10 +10,11 @@ type statusHandler struct {
 	path               string
 	client             torrentClient
 	authorizedUsername string
+	finder             torrentFinder
 }
 
-func newStatusHandler(authorizedUsername string, path string, client torrentClient) *statusHandler {
-	return &statusHandler{path, client, authorizedUsername}
+func newStatusHandler(authorizedUsername string, path string, client torrentClient, finder torrentFinder) *statusHandler {
+	return &statusHandler{path, client, authorizedUsername, finder}
 }
 
 func (responder statusHandler) Response(bot margelet.MargeletAPI, message tgbotapi.Message) error {
