@@ -14,7 +14,7 @@ import (
 var (
 	magnetRE, _      = regexp.Compile(`^magnet:\?xt=urn:.+$`)
 	yesNoReplyMarkup = tgbotapi.ReplyKeyboardMarkup{
-		[][]string{[]string{"yes", "no"}},
+		[][]string{{"yes", "no"}},
 		true,
 		true,
 		true,

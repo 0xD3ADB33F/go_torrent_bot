@@ -11,7 +11,7 @@ import (
 
 var (
 	yesNoCancelReplyMarkup = tgbotapi.ReplyKeyboardMarkup{
-		[][]string{[]string{"yes", "no"}, []string{"cancel"}},
+		[][]string{{"yes", "no"}, {"cancel"}},
 		true,
 		true,
 		true,
