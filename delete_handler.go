@@ -94,9 +94,17 @@ func (handler deleteHandler) HandleResponse(bot margelet.MargeletAPI, message tg
 
 	switch len(responses) {
 	case 0:
+		if message.ReplyToMessage != nil {
+			message = *message.ReplyToMessage
+		}
+
 		return handler.handleDeleteCommand(bot, message)
 	case 1:
-		return handler.handleAnswer(bot, responses[0], message)
+		prevMessage := responses[0]
+		if prevMessage.ReplyToMessage != nil {
+			prevMessage = *prevMessage.ReplyToMessage
+		}
+		return handler.handleAnswer(bot, prevMessage, message)
 	}
 
 	return true, nil

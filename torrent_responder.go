@@ -157,7 +157,9 @@ func downloadTorrent(bot margelet.MargeletAPI, chatID int, data []byte, client *
 
 func run(t torrent.Torrent, chatID int, bot margelet.MargeletAPI) error {
 	t.DownloadAll()
-	bot.QuickSend(chatID, fmt.Sprintf("%s is downloading...", t.Name()))
+	msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("%s is downloading...", t.Name()))
+	msg.ReplyMarkup = hideReplyMarkup
+	bot.Send(msg)
 
 	go func() {
 		for t.BytesCompleted() != t.Info().TotalLength() {
