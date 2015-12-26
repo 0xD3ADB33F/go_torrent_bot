@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/Syfaro/telegram-bot-api"
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/dustin/go-humanize"
 	"io/ioutil"
 	"net/http"
 	"path"
+	"strings"
 )
 
 func download(url string) ([]byte, error) {
@@ -66,4 +68,15 @@ func findTorrent(client *torrent.Client, hash string) *torrent.Torrent {
 		return &torrents[index]
 	}
 	return nil
+}
+
+func findTorrentByMessage(client *torrent.Client, message tgbotapi.Message) (*torrent.Torrent, error) {
+	hash := strings.TrimSpace(message.CommandArguments())
+	if len(hash) > 0 {
+		if torrent := findTorrent(client, hash); torrent != nil {
+			return torrent, nil
+		}
+		return nil, nil
+	}
+	return nil, fmt.Errorf("No hash in message")
 }

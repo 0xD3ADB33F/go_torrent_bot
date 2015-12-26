@@ -92,7 +92,7 @@ func (session TorrentResponder) Response(bot margelet.MargeletAPI, message tgbot
 	return nil
 }
 
-func (session TorrentResponder) HandleResponse(bot margelet.MargeletAPI, message tgbotapi.Message, responses []string) (bool, error) {
+func (session TorrentResponder) HandleResponse(bot margelet.MargeletAPI, message tgbotapi.Message, responses []tgbotapi.Message) (bool, error) {
 	if message.From.UserName != session.authorizedUsername {
 		bot.QuickSend(message.Chat.ID, "Sorry, you are not allowed to control me!")
 		return true, nil

@@ -5,7 +5,6 @@ import (
 	"github.com/Syfaro/telegram-bot-api"
 	"github.com/anacrolix/torrent"
 	"github.com/zhulik/margelet"
-	"strings"
 )
 
 type StatusHandler struct {
@@ -29,22 +28,22 @@ func (responder StatusHandler) Response(bot margelet.MargeletAPI, message tgbota
 		return nil
 	}
 
-	hash := strings.TrimSpace(message.CommandArguments())
-	if len(hash) > 0 {
+	torrent, err := findTorrentByMessage(responder.client, message)
 
-		if torrent := findTorrent(responder.client, hash); torrent != nil {
-			bot.QuickSend(message.Chat.ID, verboseTorrentStats(responder.path, *torrent))
-			return nil
+	if err != nil {
+		for _, t := range responder.client.Torrents() {
+			bot.QuickSend(message.Chat.ID, torrentStats(t))
 		}
-		bot.QuickSend(message.Chat.ID, fmt.Sprintf("Cannot find download with hash %s", hash))
-
 		return nil
 	}
 
-	for _, t := range responder.client.Torrents() {
-		bot.QuickSend(message.Chat.ID, torrentStats(t))
+	if torrent != nil {
+		bot.QuickSend(message.Chat.ID, verboseTorrentStats(responder.path, *torrent))
+		return nil
+	} else {
+		bot.QuickSend(message.Chat.ID, fmt.Sprintf("Cannot find download with hash %s", message.CommandArguments()))
+		return nil
 	}
-	return nil
 }
 
 func (responder StatusHandler) HelpMessage() string {
