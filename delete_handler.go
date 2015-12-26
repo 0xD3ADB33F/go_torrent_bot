@@ -5,6 +5,8 @@ import (
 	"github.com/Syfaro/telegram-bot-api"
 	"github.com/anacrolix/torrent"
 	"github.com/zhulik/margelet"
+	"os"
+	"path"
 )
 
 var (
@@ -19,10 +21,11 @@ var (
 type DeleteHandler struct {
 	client             *torrent.Client
 	authorizedUsername string
+	downloadPath       string
 }
 
-func NewDeleteHandler(authorizedUsername string, client *torrent.Client) *DeleteHandler {
-	return &DeleteHandler{client, authorizedUsername}
+func NewDeleteHandler(authorizedUsername, downloadPath string, client *torrent.Client) *DeleteHandler {
+	return &DeleteHandler{client, authorizedUsername, downloadPath}
 }
 
 func (handler DeleteHandler) HelpMessage() string {
@@ -54,10 +57,23 @@ func (handler DeleteHandler) handleAnswer(bot margelet.MargeletAPI, prevMessage 
 		return true, nil
 	}
 
+	torrent, _ := findTorrentByMessage(handler.client, prevMessage)
+
 	switch message.Text {
 	case "yes":
+		torrent.Drop()
+		go func() {
+			err := os.RemoveAll(path.Join(handler.downloadPath, torrent.Info().Name))
+			if err != nil {
+				bot.QuickSend(message.Chat.ID, fmt.Sprintf("Sorry, something went wrong when i trying to delete %s files!", infoAsString(torrent.MetaInfo())))
+			}
+		}()
+		bot.QuickSend(message.Chat.ID, fmt.Sprintf("Downloading of %s canceled, files removed!", infoAsString(torrent.MetaInfo())))
+		return true, nil
 	case "no":
-		fmt.Print("TEST")
+		bot.QuickSend(message.Chat.ID, fmt.Sprintf("Downloading of %s canceled!", infoAsString(torrent.MetaInfo())))
+		torrent.Drop()
+		return true, nil
 	}
 
 	msg := tgbotapi.NewMessage(message.Chat.ID, "Sorry, i don't understand.")
@@ -76,7 +92,6 @@ func (handler DeleteHandler) HandleResponse(bot margelet.MargeletAPI, message tg
 	case 0:
 		return handler.handleDeleteCommand(bot, message)
 	case 1:
-		fmt.Println(responses)
 		return handler.handleAnswer(bot, responses[0], message)
 	}
 
