@@ -81,13 +81,13 @@ func findHash(message tgbotapi.Message) string {
 	return ""
 }
 
-func findTorrentByMessage(client torrentClient, message tgbotapi.Message) (torrent.Download, error) {
+func findTorrentByMessage(client torrentClient, message tgbotapi.Message) (torrent.Download, string, error) {
 	hash := findHash(message)
 	if len(hash) > 0 {
 		if torrent := findTorrent(client, hash); torrent != nil {
-			return torrent, nil
+			return torrent, hash, nil
 		}
-		return nil, nil
+		return nil, hash, nil
 	}
-	return nil, fmt.Errorf("No hash in message")
+	return nil, hash, fmt.Errorf("No hash in message")
 }

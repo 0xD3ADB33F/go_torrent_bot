@@ -8,7 +8,7 @@ import (
 )
 
 func TestStatusHandler(t *testing.T) {
-	Convey("When status responder", t, func() {
+	Convey("With status responder", t, func() {
 		bot := newMargeletMock()
 		client := newTorrentClientMock()
 		handler := newStatusHandler("test", "~/", client)
@@ -42,7 +42,7 @@ func TestStatusHandler(t *testing.T) {
 				Convey("without downloads", func() {
 					handler.Response(bot, msg)
 
-					Convey("Sent message should countains information about empty download list", func() {
+					Convey("sent message should countains information about empty download list", func() {
 						So(bot.messages[0].(tgbotapi.MessageConfig).Text, ShouldEqual, "There is no downloads")
 					})
 
@@ -56,21 +56,37 @@ func TestStatusHandler(t *testing.T) {
 					client.torrents = append(client.torrents, torr)
 
 					Convey("with reply", func() {
-						msg.ReplyToMessage = &tgbotapi.Message{Text: "0000000000000000000000000000000000000000\nTest"}
-						handler.Response(bot, msg)
+						Convey("with existing hasn", func() {
+							msg.ReplyToMessage = &tgbotapi.Message{Text: "0000000000000000000000000000000000000000\nTest"}
+							handler.Response(bot, msg)
 
-						Convey("sent info about download", func() {
-							So(bot.messages[0].(tgbotapi.MessageConfig).Text, ShouldEqual, `0000000000000000000000000000000000000000
+							Convey("sent info about download", func() {
+								So(bot.messages[0].(tgbotapi.MessageConfig).Text, ShouldEqual, `0000000000000000000000000000000000000000
 Name: test
 Size: 500 B
 Progress: 20.00%
 Seeding: false
 Peers: 0
 Location: ~/test`)
+							})
+
+							Convey("only one message should be sent", func() {
+								So(len(bot.messages), ShouldEqual, 1)
+							})
 						})
 
-						Convey("only one message should be sent", func() {
-							So(len(bot.messages), ShouldEqual, 1)
+						Convey("with unknown hash", func() {
+							msg.ReplyToMessage = &tgbotapi.Message{Text: "test\nTest"}
+
+							handler.Response(bot, msg)
+
+							Convey("sent message should contains information abount unknown download", func() {
+								So(bot.messages[0].(tgbotapi.MessageConfig).Text, ShouldEqual, "Cannot find download with hash test")
+							})
+
+							Convey("only one message should be sent", func() {
+								So(len(bot.messages), ShouldEqual, 1)
+							})
 						})
 					})
 

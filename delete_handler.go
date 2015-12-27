@@ -32,7 +32,7 @@ func (handler deleteHandler) HelpMessage() string {
 }
 
 func (handler deleteHandler) handleDeleteCommand(bot margelet.MargeletAPI, message tgbotapi.Message) (bool, error) {
-	torrent, err := findTorrentByMessage(handler.client, message)
+	torrent, hash, err := findTorrentByMessage(handler.client, message)
 
 	if err != nil {
 		bot.QuickSend(message.Chat.ID, fmt.Sprintf("usage: /delete <download hash>"))
@@ -45,7 +45,7 @@ func (handler deleteHandler) handleDeleteCommand(bot margelet.MargeletAPI, messa
 		bot.Send(msg)
 		return false, nil
 	}
-	bot.QuickSend(message.Chat.ID, fmt.Sprintf("Cannot find download with hash %s", message.CommandArguments()))
+	bot.QuickSend(message.Chat.ID, fmt.Sprintf("Cannot find download with hash %s", hash))
 	return true, nil
 
 }
@@ -56,7 +56,7 @@ func (handler deleteHandler) handleAnswer(bot margelet.MargeletAPI, prevMessage 
 		return true, nil
 	}
 
-	torrent, _ := findTorrentByMessage(handler.client, prevMessage)
+	torrent, _, _ := findTorrentByMessage(handler.client, prevMessage)
 
 	switch message.Text {
 	case "yes":
@@ -67,7 +67,7 @@ func (handler deleteHandler) handleAnswer(bot margelet.MargeletAPI, prevMessage 
 				bot.QuickSend(message.Chat.ID, fmt.Sprintf("Sorry, something went wrong when i trying to delete %s files!", infoAsString(torrent.Info())))
 			}
 		}()
-		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Downloading of %s canceled, files removed!", infoAsString(torrent.Info())))
+		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Downloading of %s is canceled, files removed!", infoAsString(torrent.Info())))
 		msg.ReplyMarkup = hideReplyMarkup
 		bot.Send(msg)
 		return true, nil
