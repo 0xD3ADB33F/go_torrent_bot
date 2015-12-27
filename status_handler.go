@@ -32,7 +32,7 @@ func (responder statusHandler) Response(bot margelet.MargeletAPI, message tgbota
 		message = *message.ReplyToMessage
 	}
 
-	torrent, err := findTorrentByMessage(responder.client, message)
+	torrent, err := responder.finder(responder.client, message)
 
 	if err != nil {
 		for _, t := range responder.client.Torrents() {
@@ -42,7 +42,7 @@ func (responder statusHandler) Response(bot margelet.MargeletAPI, message tgbota
 	}
 
 	if torrent != nil {
-		bot.QuickSend(message.Chat.ID, verboseTorrentStats(responder.path, *torrent))
+		bot.QuickSend(message.Chat.ID, verboseTorrentStats(responder.path, torrent))
 		return nil
 	}
 

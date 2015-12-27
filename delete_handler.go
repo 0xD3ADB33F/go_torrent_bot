@@ -40,7 +40,7 @@ func (handler deleteHandler) handleDeleteCommand(bot margelet.MargeletAPI, messa
 	}
 
 	if torrent != nil {
-		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("You trying to delete %s.\nWould you like to remove downloaded files?", infoAsString(torrent.MetaInfo())))
+		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("You trying to delete %s.\nWould you like to remove downloaded files?", infoAsString(torrent.Info())))
 		msg.ReplyMarkup = yesNoCancelReplyMarkup
 		bot.Send(msg)
 		return false, nil
@@ -64,15 +64,15 @@ func (handler deleteHandler) handleAnswer(bot margelet.MargeletAPI, prevMessage 
 		go func() {
 			err := os.RemoveAll(path.Join(handler.downloadPath, torrent.Info().Name))
 			if err != nil {
-				bot.QuickSend(message.Chat.ID, fmt.Sprintf("Sorry, something went wrong when i trying to delete %s files!", infoAsString(torrent.MetaInfo())))
+				bot.QuickSend(message.Chat.ID, fmt.Sprintf("Sorry, something went wrong when i trying to delete %s files!", infoAsString(torrent.Info())))
 			}
 		}()
-		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Downloading of %s canceled, files removed!", infoAsString(torrent.MetaInfo())))
+		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Downloading of %s canceled, files removed!", infoAsString(torrent.Info())))
 		msg.ReplyMarkup = hideReplyMarkup
 		bot.Send(msg)
 		return true, nil
 	case "no":
-		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Downloading of %s is canceled!", infoAsString(torrent.MetaInfo())))
+		msg := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Downloading of %s is canceled!", infoAsString(torrent.Info())))
 		msg.ReplyMarkup = hideReplyMarkup
 		bot.Send(msg)
 		torrent.Drop()

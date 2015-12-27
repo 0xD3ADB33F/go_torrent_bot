@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-type torrentFinder func(client torrentClient, message tgbotapi.Message) (*torrent.Torrent, error)
+type torrentFinder func(client torrentClient, message tgbotapi.Message) (torrent.Download, error)
 
 func download(url string) ([]byte, error) {
 	response, err := http.Get(url)
@@ -29,7 +29,7 @@ func download(url string) ([]byte, error) {
 	return ioutil.ReadAll(response.Body)
 }
 
-func indexByHexHash(hash string, torrents []torrent.Torrent) int {
+func indexByHexHash(hash string, torrents []torrent.Download) int {
 	for index, t := range torrents {
 		if t.InfoHash().HexString() == hash {
 			return index
@@ -38,19 +38,19 @@ func indexByHexHash(hash string, torrents []torrent.Torrent) int {
 	return -1
 }
 
-func verboseTorrentStats(downloadPath string, t torrent.Torrent) string {
+func verboseTorrentStats(downloadPath string, t torrent.Download) string {
 	return fmt.Sprintf("%s\nName: %s\nSize: %s\nProgress: %.2f%%\nSeeding: %t\nPeers: %d\nLocation: %s",
 		t.InfoHash().HexString(),
 		t.Info().Name,
 		humanize.Bytes(uint64(t.Info().TotalLength())),
 		float64(t.BytesCompleted())/float64(t.Info().TotalLength())*100,
 		t.Seeding(),
-		len(t.Peers),
+		len(t.Peers()),
 		path.Join(downloadPath, t.Info().Name),
 	)
 }
 
-func torrentStats(torrent torrent.Torrent) string {
+func torrentStats(torrent torrent.Download) string {
 	return fmt.Sprintf("%s\nName: %s, Size: %s, Progress: %.2f%%",
 		torrent.InfoHash().HexString(),
 		torrent.Info().Name,
@@ -59,15 +59,15 @@ func torrentStats(torrent torrent.Torrent) string {
 	)
 }
 
-func infoAsString(info *metainfo.MetaInfo) string {
-	return fmt.Sprintf("Name: %s, Size: %s", info.Info.Name, humanize.Bytes(uint64(info.Info.TotalLength())))
+func infoAsString(info *metainfo.Info) string {
+	return fmt.Sprintf("Name: %s, Size: %s", info.Name, humanize.Bytes(uint64(info.TotalLength())))
 }
 
-func findTorrent(client torrentClient, hash string) *torrent.Torrent {
+func findTorrent(client torrentClient, hash string) torrent.Download {
 	torrents := client.Torrents()
 	index := indexByHexHash(hash, torrents)
 	if index != -1 {
-		return &torrents[index]
+		return torrents[index]
 	}
 	return nil
 }
@@ -83,7 +83,7 @@ func findHash(message tgbotapi.Message) string {
 	return ""
 }
 
-func findTorrentByMessage(client torrentClient, message tgbotapi.Message) (*torrent.Torrent, error) {
+func findTorrentByMessage(client torrentClient, message tgbotapi.Message) (torrent.Download, error) {
 	hash := findHash(message)
 	if len(hash) > 0 {
 		if torrent := findTorrent(client, hash); torrent != nil {

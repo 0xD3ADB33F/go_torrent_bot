@@ -3,8 +3,10 @@ package main
 import (
 	"github.com/Syfaro/telegram-bot-api"
 	"github.com/anacrolix/torrent"
+	"github.com/anacrolix/torrent/metainfo"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+	"fmt"
 )
 
 func TestStatusHandler(t *testing.T) {
@@ -52,19 +54,70 @@ func TestStatusHandler(t *testing.T) {
 				})
 
 				Convey("with existing downloads", func() {
-					torr := torrent.Torrent{}
+					torr := DownloadMock{info: &metainfo.Info{Length: 500, Name: "test"}, bytesCompleted: 100}
 					client.torrents = append(client.torrents, torr)
-					handler.finder = func(client torrentClient, message tgbotapi.Message) (*torrent.Torrent, error) {
-						return &torr, nil
+					handler.finder = func(client torrentClient, message tgbotapi.Message) (torrent.Download, error) {
+						return torr, nil
 					}
 
-//					Convey("with reply", func() {
-//						msg.ReplyToMessage = &tgbotapi.Message{}
-//						handler.Response(bot, msg)
-//						Convey("sent info about download", func() {
-//							So(bot.messages[0].(tgbotapi.MessageConfig).Text, ShouldEqual, "")
-//						})
-//					})
+					Convey("with reply", func() {
+						msg.ReplyToMessage = &tgbotapi.Message{}
+						handler.Response(bot, msg)
+
+						Convey("sent info about download", func() {
+							So(bot.messages[0].(tgbotapi.MessageConfig).Text, ShouldEqual, `0000000000000000000000000000000000000000
+Name: test
+Size: 500 B
+Progress: 20.00%
+Seeding: false
+Peers: 0
+Location: ~/test`)
+						})
+
+						Convey("only one message should be sent", func() {
+							So(len(bot.messages), ShouldEqual, 1)
+						})
+					})
+
+					Convey("with hash argument", func() {
+						msg.Text = "0000000000000000000000000000000000000000"
+						handler.Response(bot, msg)
+
+						Convey("sent info about download", func() {
+							So(bot.messages[0].(tgbotapi.MessageConfig).Text, ShouldEqual, `0000000000000000000000000000000000000000
+Name: test
+Size: 500 B
+Progress: 20.00%
+Seeding: false
+Peers: 0
+Location: ~/test`)
+						})
+
+						Convey("only one message should be sent", func() {
+							So(len(bot.messages), ShouldEqual, 1)
+						})
+					})
+
+					Convey("without arguments", func() {
+						torr1 := DownloadMock{info: &metainfo.Info{Length: 1000, Name: "test again"}, bytesCompleted: 100}
+						client.torrents = append(client.torrents, torr1)
+						handler.finder = func(client torrentClient, message tgbotapi.Message) (torrent.Download, error) {
+							return torr, fmt.Errorf("")
+						}
+						handler.Response(bot, msg)
+
+						Convey("sent info about all all downloads", func() {
+							So(bot.messages[0].(tgbotapi.MessageConfig).Text, ShouldEqual, `0000000000000000000000000000000000000000
+Name: test, Size: 500 B, Progress: 20.00%`)
+
+							So(bot.messages[1].(tgbotapi.MessageConfig).Text, ShouldEqual, `0000000000000000000000000000000000000000
+Name: test again, Size: 1.0 kB, Progress: 10.00%`)
+						})
+
+						Convey("only one message should be sent", func() {
+							So(len(bot.messages), ShouldEqual, 2)
+						})
+					})
 				})
 			})
 		})

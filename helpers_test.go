@@ -2,29 +2,31 @@ package main
 
 import (
 	"github.com/Syfaro/telegram-bot-api"
+	"github.com/anacrolix/missinggo/pubsub"
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
+	"github.com/anacrolix/torrent/tracker"
 	"github.com/zhulik/margelet"
 	"gopkg.in/redis.v3"
 )
 
 type TorrentClientMock struct {
-	torrents []torrent.Torrent
+	torrents []torrent.Download
 }
 
 func newTorrentClientMock() *TorrentClientMock {
 	return &TorrentClientMock{}
 }
 
-func (mock TorrentClientMock) AddMagnet(string) (torrent.Torrent, error) {
+func (mock TorrentClientMock) AddMagnet(string) (torrent.Download, error) {
 	return mock.torrents[0], nil
 }
 
-func (mock TorrentClientMock) AddTorrent(info *metainfo.MetaInfo) (torrent.Torrent, error) {
+func (mock TorrentClientMock) AddTorrent(info *metainfo.MetaInfo) (torrent.Download, error) {
 	return mock.torrents[0], nil
 }
 
-func (mock *TorrentClientMock) Torrents() []torrent.Torrent {
+func (mock *TorrentClientMock) Torrents() []torrent.Download {
 	return mock.torrents
 }
 
@@ -73,4 +75,80 @@ func (mock MargeletMock) HandleSession(message tgbotapi.Message, handler margele
 
 func newMargeletMock() *MargeletMock {
 	return &MargeletMock{}
+}
+
+type DownloadMock struct {
+	infoHash       torrent.InfoHash
+	info           *metainfo.Info
+	bytesCompleted int64
+	seeding        bool
+	client         *torrent.Client
+}
+
+func (mock DownloadMock) InfoHash() torrent.InfoHash {
+	return mock.infoHash
+}
+
+func (mock DownloadMock) GotInfo() <-chan struct{} {
+	return make(<-chan struct{})
+}
+
+func (mock DownloadMock) Info() *metainfo.Info {
+	return mock.info
+}
+
+func (mock DownloadMock) NewReader() (ret *torrent.Reader) {
+	return nil
+}
+
+func (mock DownloadMock) PieceStateRuns() []torrent.PieceStateRun {
+	return []torrent.PieceStateRun{}
+}
+
+func (mock DownloadMock) NumPieces() int {
+	return 100
+}
+
+func (mock DownloadMock) Drop() {
+
+}
+
+func (mock DownloadMock) BytesCompleted() int64 {
+	return mock.bytesCompleted
+}
+
+func (mock DownloadMock) SubscribePieceStateChanges() *pubsub.Subscription {
+	return nil
+}
+
+func (mock DownloadMock) Seeding() bool {
+	return mock.seeding
+}
+
+func (mock DownloadMock) SetDisplayName(dn string) {
+
+}
+
+func (mock DownloadMock) Client() *torrent.Client {
+	return mock.client
+}
+
+func (mock DownloadMock) AddPeers(pp []torrent.Peer) error {
+	return nil
+}
+
+func (mock DownloadMock) DownloadAll() {
+
+}
+
+func (mock DownloadMock) Trackers() [][]tracker.Client {
+	return [][]tracker.Client{}
+}
+
+func (mock DownloadMock) Files() (ret []torrent.File) {
+	return []torrent.File{}
+}
+
+func (mock DownloadMock) Peers() map[torrent.PeersKey]torrent.Peer {
+	return map[torrent.PeersKey]torrent.Peer{}
 }
