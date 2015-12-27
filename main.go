@@ -51,12 +51,21 @@ func main() {
 
 	repo := newTorrentsRepository("torrent_bot_torrents", bot.GetRedis())
 
-	torrentResponder, err := newTorrentResponder(*authorizedUsername, client, repo)
+	downHandler, _ := newDownloadHandler(*authorizedUsername, client, repo)
+
+	torrentResponder, err := newTorrentResponder(*authorizedUsername, client, repo, downHandler)
 	if err != nil {
 		panic(err)
 	}
+
+	magnetResponder, err := newMagnetResponder(*authorizedUsername, client, repo, downHandler)
+	if err != nil {
+		panic(err)
+	}
+
 	bot.AddMessageResponder(torrentResponder)
-	bot.AddSessionHandler("/download", torrentResponder)
+	bot.AddMessageResponder(magnetResponder)
+	bot.AddSessionHandler("/download", downHandler)
 	bot.AddCommandHandler("/status", newStatusHandler(*authorizedUsername, *downloadPath, client))
 	bot.AddSessionHandler("/delete", newDeleteHandler(*authorizedUsername, *downloadPath, client))
 
