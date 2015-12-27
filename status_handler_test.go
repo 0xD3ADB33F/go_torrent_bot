@@ -2,18 +2,16 @@ package main
 
 import (
 	"github.com/Syfaro/telegram-bot-api"
-	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"fmt"
 )
 
 func TestStatusHandler(t *testing.T) {
 	Convey("When status responder", t, func() {
 		bot := newMargeletMock()
 		client := newTorrentClientMock()
-		handler := newStatusHandler("test", "~/", client, findTorrentByMessage)
+		handler := newStatusHandler("test", "~/", client)
 
 		Convey("when calling HelpMessage", func() {
 			message := handler.HelpMessage()
@@ -56,12 +54,9 @@ func TestStatusHandler(t *testing.T) {
 				Convey("with existing downloads", func() {
 					torr := DownloadMock{info: &metainfo.Info{Length: 500, Name: "test"}, bytesCompleted: 100}
 					client.torrents = append(client.torrents, torr)
-					handler.finder = func(client torrentClient, message tgbotapi.Message) (torrent.Download, error) {
-						return torr, nil
-					}
 
 					Convey("with reply", func() {
-						msg.ReplyToMessage = &tgbotapi.Message{}
+						msg.ReplyToMessage = &tgbotapi.Message{Text: "0000000000000000000000000000000000000000\nTest"}
 						handler.Response(bot, msg)
 
 						Convey("sent info about download", func() {
@@ -80,7 +75,7 @@ Location: ~/test`)
 					})
 
 					Convey("with hash argument", func() {
-						msg.Text = "0000000000000000000000000000000000000000"
+						msg.Text = "/delete 0000000000000000000000000000000000000000"
 						handler.Response(bot, msg)
 
 						Convey("sent info about download", func() {
@@ -101,9 +96,6 @@ Location: ~/test`)
 					Convey("without arguments", func() {
 						torr1 := DownloadMock{info: &metainfo.Info{Length: 1000, Name: "test again"}, bytesCompleted: 100}
 						client.torrents = append(client.torrents, torr1)
-						handler.finder = func(client torrentClient, message tgbotapi.Message) (torrent.Download, error) {
-							return torr, fmt.Errorf("")
-						}
 						handler.Response(bot, msg)
 
 						Convey("sent info about all all downloads", func() {
@@ -116,6 +108,19 @@ Name: test again, Size: 1.0 kB, Progress: 10.00%`)
 
 						Convey("only one message should be sent", func() {
 							So(len(bot.messages), ShouldEqual, 2)
+						})
+					})
+
+					Convey("with unknown hash angument", func() {
+						msg.Text = "/delete test"
+						handler.Response(bot, msg)
+
+						Convey("sent message that download not found", func() {
+							So(bot.messages[0].(tgbotapi.MessageConfig).Text, ShouldEqual, "Cannot find download with hash test")
+						})
+
+						Convey("only one message should be sent", func() {
+							So(len(bot.messages), ShouldEqual, 1)
 						})
 					})
 				})

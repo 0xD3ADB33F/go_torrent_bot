@@ -10,11 +10,10 @@ type statusHandler struct {
 	path               string
 	client             torrentClient
 	authorizedUsername string
-	finder             torrentFinder
 }
 
-func newStatusHandler(authorizedUsername string, path string, client torrentClient, finder torrentFinder) *statusHandler {
-	return &statusHandler{path, client, authorizedUsername, finder}
+func newStatusHandler(authorizedUsername string, path string, client torrentClient) *statusHandler {
+	return &statusHandler{path, client, authorizedUsername}
 }
 
 func (responder statusHandler) Response(bot margelet.MargeletAPI, message tgbotapi.Message) error {
@@ -32,7 +31,7 @@ func (responder statusHandler) Response(bot margelet.MargeletAPI, message tgbota
 		message = *message.ReplyToMessage
 	}
 
-	torrent, err := responder.finder(responder.client, message)
+	torrent, err := findTorrentByMessage(responder.client, message)
 
 	if err != nil {
 		for _, t := range responder.client.Torrents() {

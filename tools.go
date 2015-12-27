@@ -12,8 +12,6 @@ import (
 	"strings"
 )
 
-type torrentFinder func(client torrentClient, message tgbotapi.Message) (torrent.Download, error)
-
 func download(url string) ([]byte, error) {
 	response, err := http.Get(url)
 
