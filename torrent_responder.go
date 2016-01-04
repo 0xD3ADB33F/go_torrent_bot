@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"github.com/Syfaro/telegram-bot-api"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/zhulik/margelet"
