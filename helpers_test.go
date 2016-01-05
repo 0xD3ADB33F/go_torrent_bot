@@ -8,6 +8,7 @@ import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/zhulik/margelet"
 	"gopkg.in/redis.v3"
+	"io/ioutil"
 )
 
 type TorrentClientMock struct {
@@ -31,7 +32,8 @@ func (mock *TorrentClientMock) Torrents() []torrent.Torrent {
 }
 
 type MargeletMock struct {
-	messages []tgbotapi.Chattable
+	messages          []tgbotapi.Chattable
+	sessionRepository sessionRepositoryMock
 }
 
 func (mock *MargeletMock) Send(c tgbotapi.Chattable) (tgbotapi.Message, error) {
@@ -61,8 +63,8 @@ func (mock MargeletMock) GetConfigRepository() *margelet.ChatConfigRepository {
 	return nil
 }
 
-func (mock MargeletMock) GetSessionRepository() *margelet.SessionRepository {
-	return nil
+func (mock *MargeletMock) GetSessionRepository() margelet.SessionRepository {
+	return mock.sessionRepository
 }
 
 func (mock MargeletMock) GetRedis() *redis.Client {
@@ -83,14 +85,15 @@ type DownloadMock struct {
 	bytesCompleted int64
 	seeding        bool
 	client         *torrent.Client
+	infoChan       chan struct{}
 }
 
 func (mock DownloadMock) InfoHash() torrent.InfoHash {
 	return mock.infoHash
 }
 
-func (mock DownloadMock) GotInfo() <-chan struct{} {
-	return make(<-chan struct{})
+func (mock *DownloadMock) GotInfo() <-chan struct{} {
+	return mock.infoChan
 }
 
 func (mock DownloadMock) Info() *metainfo.Info {
@@ -151,4 +154,31 @@ func (mock DownloadMock) Files() (ret []torrent.File) {
 
 func (mock DownloadMock) Peers() map[torrent.PeersKey]torrent.Peer {
 	return map[torrent.PeersKey]torrent.Peer{}
+}
+
+type sessionRepositoryMock struct {
+}
+
+func (sessionRepositoryMock) Add(int, int, tgbotapi.Message) {
+
+}
+
+func (sessionRepositoryMock) Create(int, int, string) {
+
+}
+
+func (sessionRepositoryMock) Command(int, int) string {
+	return ""
+}
+
+func (sessionRepositoryMock) Dialog(int, int) []tgbotapi.Message {
+	return []tgbotapi.Message{}
+}
+
+func (sessionRepositoryMock) Remove(int, int) {
+
+}
+
+func downloadMock(url string) ([]byte, error) {
+	return ioutil.ReadFile("testdata/bbb.torrent")
 }

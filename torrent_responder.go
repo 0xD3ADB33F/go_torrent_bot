@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
-
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/zhulik/margelet"
 )
@@ -26,10 +25,12 @@ type torrentResponder struct {
 	torrentsRepository *torrentsRepository
 	authorizedUsername string
 	downloadSession    margelet.SessionHandler
+	download           Downloader
 }
 
-func newTorrentResponder(authorizedUsername string, client torrentClient, repo *torrentsRepository, downloadSession margelet.SessionHandler) (responder *torrentResponder, err error) {
-	responder = &torrentResponder{client, repo, authorizedUsername, downloadSession}
+func newTorrentResponder(authorizedUsername string, client torrentClient,
+	repo *torrentsRepository, downloadSession margelet.SessionHandler, d Downloader) (responder *torrentResponder, err error) {
+	responder = &torrentResponder{client, repo, authorizedUsername, downloadSession, d}
 	return
 }
 
@@ -50,7 +51,7 @@ func (session torrentResponder) Response(bot margelet.MargeletAPI, message tgbot
 		return err
 	}
 
-	data, err := download(url)
+	data, err := session.download(url)
 	if err != nil {
 		return err
 	}

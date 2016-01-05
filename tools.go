@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+type Downloader func(url string) ([]byte, error)
+
 func download(url string) ([]byte, error) {
 	response, err := http.Get(url)
 

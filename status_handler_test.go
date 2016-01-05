@@ -52,7 +52,7 @@ func TestStatusHandler(t *testing.T) {
 				})
 
 				Convey("with existing downloads", func() {
-					torr := DownloadMock{info: &metainfo.Info{Length: 500, Name: "test"}, bytesCompleted: 100}
+					torr := &DownloadMock{info: &metainfo.Info{Length: 500, Name: "test"}, bytesCompleted: 100}
 					client.torrents = append(client.torrents, torr)
 
 					Convey("with reply", func() {
@@ -110,7 +110,7 @@ Location: ~/test`)
 					})
 
 					Convey("without arguments", func() {
-						torr1 := DownloadMock{info: &metainfo.Info{Length: 1000, Name: "test again"}, bytesCompleted: 100}
+						torr1 := &DownloadMock{info: &metainfo.Info{Length: 1000, Name: "test again"}, bytesCompleted: 100}
 						client.torrents = append(client.torrents, torr1)
 						handler.Response(bot, msg)
 

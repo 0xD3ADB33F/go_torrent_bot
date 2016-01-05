@@ -49,7 +49,7 @@ func TestDeleteHandler(t *testing.T) {
 				})
 
 				Convey("with reply", func() {
-					torr := DownloadMock{info: &metainfo.Info{Length: 500, Name: "test"}, bytesCompleted: 100}
+					torr := &DownloadMock{info: &metainfo.Info{Length: 500, Name: "test"}, bytesCompleted: 100}
 					client.torrents = append(client.torrents, torr)
 					Convey("with existing hash", func() {
 						msg.ReplyToMessage = &tgbotapi.Message{Text: "0000000000000000000000000000000000000000\nTest"}
@@ -81,7 +81,7 @@ Would you like to remove downloaded files?`)
 				})
 
 				Convey("with hash argument", func() {
-					torr := DownloadMock{info: &metainfo.Info{Length: 500, Name: "test"}, bytesCompleted: 100}
+					torr := &DownloadMock{info: &metainfo.Info{Length: 500, Name: "test"}, bytesCompleted: 100}
 					client.torrents = append(client.torrents, torr)
 
 					Convey("without hash argument", func() {
@@ -125,7 +125,7 @@ Would you like to remove downloaded files?`)
 					})
 				})
 				Convey("with answer on delete question", func() {
-					torr := DownloadMock{info: &metainfo.Info{Length: 500, Name: "test"}, bytesCompleted: 100}
+					torr := &DownloadMock{info: &metainfo.Info{Length: 500, Name: "test"}, bytesCompleted: 100}
 					client.torrents = append(client.torrents, torr)
 					Convey("with reply in previous message", func() {
 						prevMessage := tgbotapi.Message{}

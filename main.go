@@ -53,7 +53,7 @@ func main() {
 
 	downHandler, _ := newDownloadHandler(*authorizedUsername, client, repo)
 
-	torrentResponder, err := newTorrentResponder(*authorizedUsername, client, repo, downHandler)
+	torrentResponder, err := newTorrentResponder(*authorizedUsername, client, repo, downHandler, download)
 	if err != nil {
 		panic(err)
 	}
