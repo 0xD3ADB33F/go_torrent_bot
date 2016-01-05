@@ -11,22 +11,22 @@ import (
 )
 
 type TorrentClientMock struct {
-	torrents []torrent.Download
+	torrents []torrent.Torrent
 }
 
 func newTorrentClientMock() *TorrentClientMock {
 	return &TorrentClientMock{}
 }
 
-func (mock TorrentClientMock) AddMagnet(string) (torrent.Download, error) {
+func (mock TorrentClientMock) AddMagnet(string) (torrent.Torrent, error) {
 	return mock.torrents[0], nil
 }
 
-func (mock TorrentClientMock) AddTorrent(info *metainfo.MetaInfo) (torrent.Download, error) {
+func (mock TorrentClientMock) AddTorrent(info *metainfo.MetaInfo) (torrent.Torrent, error) {
 	return mock.torrents[0], nil
 }
 
-func (mock *TorrentClientMock) Torrents() []torrent.Download {
+func (mock *TorrentClientMock) Torrents() []torrent.Torrent {
 	return mock.torrents
 }
 

@@ -6,7 +6,7 @@ import (
 )
 
 type torrentClient interface {
-	Torrents() []torrent.Download
-	AddMagnet(url string) (torrent.Download, error)
-	AddTorrent(info *metainfo.MetaInfo) (torrent.Download, error)
+	Torrents() []torrent.Torrent
+	AddMagnet(url string) (torrent.Torrent, error)
+	AddTorrent(info *metainfo.MetaInfo) (torrent.Torrent, error)
 }

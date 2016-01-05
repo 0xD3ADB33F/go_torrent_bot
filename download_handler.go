@@ -79,7 +79,7 @@ func downloadTorrent(bot margelet.MargeletAPI, chatID int, data []byte, client t
 	return downloadTorrentFile(bot, chatID, data, client)
 }
 
-func run(t torrent.Download, chatID int, bot margelet.MargeletAPI) error {
+func run(t torrent.Torrent, chatID int, bot margelet.MargeletAPI) error {
 	t.DownloadAll()
 	msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("%s is downloading...", t.Info().Name))
 	msg.ReplyMarkup = hideReplyMarkup
