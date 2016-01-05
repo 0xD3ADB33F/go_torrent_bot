@@ -1,8 +1,6 @@
 package main
 
 import (
-	//	"github.com/anacrolix/torrent/metainfo"
-	//	"github.com/go-telegram-bot-api/telegram-bot-api"
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/redis.v3"
 	"testing"
@@ -15,6 +13,7 @@ func TestTorrentRepository(t *testing.T) {
 			Password: "",
 			DB:       8,
 		})
+		defer redis.FlushDb()
 
 		repo := newTorrentsRepository("torrent_bot_torrents", redis)
 
