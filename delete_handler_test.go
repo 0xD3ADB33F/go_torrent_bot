@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/anacrolix/torrent/metainfo"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"

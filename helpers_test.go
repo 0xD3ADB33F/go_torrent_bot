@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/anacrolix/missinggo/pubsub"
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/anacrolix/torrent/tracker"
+	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/zhulik/margelet"
 	"gopkg.in/redis.v3"
 )
