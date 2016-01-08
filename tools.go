@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/dustin/go-humanize"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
@@ -29,7 +28,7 @@ func download(url string) ([]byte, error) {
 	return ioutil.ReadAll(response.Body)
 }
 
-func indexByHexHash(hash string, torrents []torrent.Torrent) int {
+func indexByHexHash(hash string, torrents []Torrent) int {
 	for index, t := range torrents {
 		if t.InfoHash().HexString() == hash {
 			return index
@@ -38,19 +37,18 @@ func indexByHexHash(hash string, torrents []torrent.Torrent) int {
 	return -1
 }
 
-func verboseTorrentStats(downloadPath string, t *torrent.Torrent) string {
-	return fmt.Sprintf("%s\nName: %s\nSize: %s\nProgress: %.2f%%\nSeeding: %t\nPeers: %d\nLocation: %s",
+func verboseTorrentStats(downloadPath string, t Torrent) string {
+	return fmt.Sprintf("%s\nName: %s\nSize: %s\nProgress: %.2f%%\nSeeding: %t\nLocation: %s",
 		t.InfoHash().HexString(),
 		t.Info().Name,
 		humanize.Bytes(uint64(t.Info().TotalLength())),
 		float64(t.BytesCompleted())/float64(t.Info().TotalLength())*100,
 		t.Seeding(),
-		len(t.Peers),
 		path.Join(downloadPath, t.Info().Name),
 	)
 }
 
-func torrentStats(torrent torrent.Torrent) string {
+func torrentStats(torrent Torrent) string {
 	return fmt.Sprintf("%s\nName: %s, Size: %s, Progress: %.2f%%",
 		torrent.InfoHash().HexString(),
 		torrent.Info().Name,
@@ -63,11 +61,11 @@ func infoAsString(info *metainfo.Info) string {
 	return fmt.Sprintf("Name: %s, Size: %s", info.Name, humanize.Bytes(uint64(info.TotalLength())))
 }
 
-func findTorrent(client torrentClient, hash string) *torrent.Torrent {
+func findTorrent(client torrentClient, hash string) Torrent {
 	torrents := client.Torrents()
 	index := indexByHexHash(hash, torrents)
 	if index != -1 {
-		return &torrents[index]
+		return torrents[index]
 	}
 	return nil
 }
@@ -83,7 +81,7 @@ func findHash(message tgbotapi.Message) string {
 	return ""
 }
 
-func findTorrentByMessage(client torrentClient, message tgbotapi.Message) (*torrent.Torrent, string, error) {
+func findTorrentByMessage(client torrentClient, message tgbotapi.Message) (Torrent, string, error) {
 	hash := findHash(message)
 	if len(hash) > 0 {
 		if torrent := findTorrent(client, hash); torrent != nil {

@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/zhulik/margelet"
@@ -79,7 +78,7 @@ func downloadTorrent(bot margelet.MargeletAPI, chatID int, data []byte, client t
 	return downloadTorrentFile(bot, chatID, data, client)
 }
 
-func run(t torrent.Torrent, chatID int, bot margelet.MargeletAPI) error {
+func run(t Torrent, chatID int, bot margelet.MargeletAPI) error {
 	t.DownloadAll()
 	msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("%s is downloading...", t.Info().Name))
 	msg.ReplyMarkup = hideReplyMarkup

@@ -43,11 +43,13 @@ func main() {
 		},
 	}
 
-	client, err := torrent.NewClient(&config)
+	tClient, err := torrent.NewClient(&config)
 	if err != nil {
 		panic(err)
 	}
-	defer client.Close()
+	defer tClient.Close()
+
+	client := &torrentClientProxy{tClient}
 
 	repo := newTorrentsRepository("torrent_bot_torrents", bot.GetRedis())
 
