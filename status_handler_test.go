@@ -66,7 +66,6 @@ Name: test
 Size: 500 B
 Progress: 20.00%
 Seeding: false
-Peers: 0
 Location: ~/test`)
 							})
 
@@ -100,7 +99,6 @@ Name: test
 Size: 500 B
 Progress: 20.00%
 Seeding: false
-Peers: 0
 Location: ~/test`)
 						})
 

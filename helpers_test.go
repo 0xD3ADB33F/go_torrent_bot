@@ -4,7 +4,6 @@ import (
 	"github.com/anacrolix/missinggo/pubsub"
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
-	"github.com/anacrolix/torrent/tracker"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/zhulik/margelet"
 	"gopkg.in/redis.v3"
@@ -132,10 +131,6 @@ func (mock DownloadMock) SetDisplayName(dn string) {
 
 }
 
-func (mock DownloadMock) Client() *torrent.Client {
-	return mock.client
-}
-
 func (mock DownloadMock) AddPeers(pp []torrent.Peer) error {
 	return nil
 }
@@ -144,16 +139,8 @@ func (mock DownloadMock) DownloadAll() {
 
 }
 
-func (mock DownloadMock) Trackers() [][]tracker.Client {
-	return [][]tracker.Client{}
-}
-
 func (mock DownloadMock) Files() (ret []torrent.File) {
 	return []torrent.File{}
-}
-
-func (mock DownloadMock) Peers() map[torrent.PeersKey]torrent.Peer {
-	return map[torrent.PeersKey]torrent.Peer{}
 }
 
 type sessionRepositoryMock struct {
