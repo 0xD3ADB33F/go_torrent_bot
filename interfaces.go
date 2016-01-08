@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/anacrolix/missinggo/pubsub"
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
-	"github.com/anacrolix/missinggo/pubsub"
 )
 
 type Torrent interface {
@@ -18,12 +18,9 @@ type Torrent interface {
 	SubscribePieceStateChanges() *pubsub.Subscription
 	Seeding() bool
 	SetDisplayName(dn string)
-//	Client() *torrent.Client
 	AddPeers(pp []torrent.Peer) error
 	DownloadAll()
-//	Trackers() [][]tracker.Client
 	Files() (ret []torrent.File)
-//	Peers() map[PeersKey]Peer
 }
 
 type torrentClient interface {
